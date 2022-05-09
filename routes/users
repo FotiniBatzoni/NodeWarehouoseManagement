@@ -1,0 +1,21 @@
+const express = require("express");
+const router = express.Router();
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const paginateDocuments = require("../utilities/paginateDocuments");
+const {User, validateUser} = require("../models/user");
+
+
+router.get("/",[auth],async(req,res)=>{
+    const usersQuery = User.find().select('-__v');
+
+    let usersCount = await User.countDocuments();
+  
+    const url = `${req.protocol}://${req.get('host')}/api/users`;
+  
+    let users = await paginateDocuments(req.query, usersQuery, usersCount, url);
+  
+    return res.send(users);
+})
+
+module.exports = router;

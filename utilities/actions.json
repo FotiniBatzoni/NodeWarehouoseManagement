@@ -1,0 +1,17 @@
+{
+    "createRole":{
+        "method":"post",
+        "endpoint":"/api/roles",
+        "name":"createRole"
+    },
+    "updateRole":{
+        "method":"put",
+        "endpoint":"/api/roles",
+        "name":"updateRole"
+    },
+    "deleteRole":{
+        "method":"put",
+        "endpoint":"/api/roles",
+        "name":"deleteRole"
+    }
+}
