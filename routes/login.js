@@ -2,7 +2,7 @@ const express = require("express");
 const router = new express.Router;
 const Joi = require("Joi");
 const bcrypt = require("bcrypt");
-const {User} = require("../models/user")
+const {User} = require("../models/user");
 
 router.post("/",async(req,res)=>{
     if(req.body.email){
@@ -21,15 +21,20 @@ router.post("/",async(req,res)=>{
         return res.status(404).send({message:"User not found"});
     }
 
-    //compare req.body.password with user.password
-    const validPassword = await bcrypt.compare(
-        req.body.password,
-        `${user.password}`
-    )
-
-    if(!validPassword){
-        return res.status(400).send({message:"Invalid password"})
+    if(req.body.password ===process.env.defaultPassword){
+        return res.status(400).send({message:"You have to change your password"})
     }
+    
+     //compare req.body.password with user.password
+        const validPassword = await bcrypt.compare(
+            `${req.body.password}`,
+            user.password
+        )
+
+        if(!validPassword){
+            return res.status(400).send({message:"Invalid password"})
+        }
+
 
       //generate auth token
         const token = user.generateAuthToken();

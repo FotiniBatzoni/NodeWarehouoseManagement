@@ -3,6 +3,7 @@ const {Role} = require("../models/role")
 module.exports = async(req,res,next)=>{
     console.log(req.user.role);
     const role = await Role.findOne({_id:req.user.role});
+    console.log(role)
 
     const action = req.body.action
     if(action==="createRole" && !role.rights.role.canCreateRole){
@@ -17,6 +18,10 @@ module.exports = async(req,res,next)=>{
         return res.status(403).send({message:"You have not access"})
     }
 
+    console.log(role.rights.user.canCreateUser)
+    if(!role.rights.user.canCreateUser){
+        return res.status(403).send({message:"You have not access"})
+    }
     
     next();
 }

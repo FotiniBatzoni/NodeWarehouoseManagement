@@ -10,7 +10,8 @@ const userSchema = new mongoose.Schema({
         unique:true
     },
     password:{
-        type:String
+        type:String,
+        default:process.env.defaultPassword
     },
     firstName:{
         type:String
@@ -24,14 +25,6 @@ const userSchema = new mongoose.Schema({
     role:{
             type:mongoose.Schema.Types.ObjectId,
             ref:"Role"
-    },
-    isEmailVerified:{
-        type:Boolean,
-        default:false
-    },
-    action:{
-        type:String,
-        required:true
     }
 
 });
@@ -61,12 +54,10 @@ function validateUser(user){
             "string.max": `Email should have at most 50 letters length`,
             "string.empty": `Email should not be empty`
         }),
-        password:Joi.string().required().min(8).max(50)
+        password:Joi.string().min(8).max(50)
         .messages({
-            "any.required": `Password is a required field`,
             "string.min": `Password should have at least 8 letters length`,
-            "string.max": `Password should have at most 50 letters length`,
-            "string.empty": `Password should not be empty`
+            "string.max": `Password should have at most 50 letters length`
         }),
         firstName:Joi.string().required().min(2).max(50)
         .messages({
@@ -87,16 +78,11 @@ function validateUser(user){
             "any.required": `Telephone is a required field`,
             "string.length": `Telephone should have  10 digits`,
             "string.empty": `Telephone should not be empty`
-        }),
-        isEmailVerified:Joi.boolean()
-        .messages({
-            "any.required": `isEmailVerified is a required field`,
-            "boolean.base":`isEmailVerified must be a boolean`
-        }),
-        action:Joi.string().required().messages({
-            "any.required": `Action is a required field`,
-            "string.empty": `Action should not be empty`
         })
+        // action:Joi.string().required().messages({
+        //     "any.required": `Action is a required field`,
+        //     "string.empty": `Action should not be empty`
+        // })
      
     });
     return schema.validate(user);

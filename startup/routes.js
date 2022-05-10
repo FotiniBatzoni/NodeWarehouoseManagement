@@ -3,8 +3,10 @@ const baseDirectory = require("path").resolve("./");
 const fs = require("fs");
 const categories = require("../routes/categories");
 const signup = require("../routes/signup");
-const auth = require("../routes/auth");
-const roles =require("../routes/roles")
+const login = require("../routes/login");
+const changePassword = require("../routes/changePassword");
+const roles =require("../routes/roles");
+const users = require("../routes/users");
 
 //to handle res.header
 module.exports = function (app) {
@@ -29,7 +31,9 @@ module.exports = function (app) {
 
   app.use("/api/categories",categories);
   app.use("/api/signup",signup);
-  app.use("/api/auth",auth);
-  app.use("/api/roles",roles)
+  app.use("/api/login",login);
+  app.use("/api/change_password",changePassword);
+  app.use("/api/roles",roles);
+  app.use("/api/users",users);
 
 };
