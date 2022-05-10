@@ -25,6 +25,10 @@ const userSchema = new mongoose.Schema({
     role:{
             type:mongoose.Schema.Types.ObjectId,
             ref:"Role"
+    },
+    verificationCode:{
+        type:String,
+        length:5
     }
 
 });

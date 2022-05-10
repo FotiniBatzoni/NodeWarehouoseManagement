@@ -5,8 +5,10 @@ const categories = require("../routes/categories");
 const signup = require("../routes/signup");
 const login = require("../routes/login");
 const changePassword = require("../routes/changePassword");
+const forgotPassword = require("../routes/forgotPassword");
 const roles =require("../routes/roles");
 const users = require("../routes/users");
+const req = require("express/lib/request");
 
 //to handle res.header
 module.exports = function (app) {
@@ -33,6 +35,7 @@ module.exports = function (app) {
   app.use("/api/signup",signup);
   app.use("/api/login",login);
   app.use("/api/change_password",changePassword);
+  app.use("/api/forgot_password",forgotPassword);
   app.use("/api/roles",roles);
   app.use("/api/users",users);
 
