@@ -109,7 +109,6 @@ const roleSchema = new mongoose.Schema({
                 default:false
             }
         }
-
     },
     action:{
         type:String,

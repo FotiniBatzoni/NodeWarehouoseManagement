@@ -8,7 +8,7 @@ const changePassword = require("../routes/changePassword");
 const forgotPassword = require("../routes/forgotPassword");
 const roles =require("../routes/roles");
 const users = require("../routes/users");
-const req = require("express/lib/request");
+const suppliers = require("../routes/suppliers")
 
 //to handle res.header
 module.exports = function (app) {
@@ -38,5 +38,6 @@ module.exports = function (app) {
   app.use("/api/forgot_password",forgotPassword);
   app.use("/api/roles",roles);
   app.use("/api/users",users);
+  app.use("/api/suppliers",suppliers)
 
 };

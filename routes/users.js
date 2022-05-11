@@ -25,13 +25,13 @@ router.get("/:userId",[auth],async(req,res)=>{
     const {userId} = req.params;
 
     if(!mongoose.isValidObjectId(userId)){
-        return res.status(404).send({message:"1User has not been found"});
+        return res.status(404).send({message:"User has not been found"});
     }
 
     let user = await User.findOne({_id:userId}).select("-password -__v");
 
     if(!user){
-        return res.status(404).send({message:"2User has not been found"});
+        return res.status(404).send({message:"User has not been found"});
     }
 
     return res.send(user)
@@ -39,7 +39,7 @@ router.get("/:userId",[auth],async(req,res)=>{
 })
 
 router.put("/:userId",[auth,accessControl],async(req,res)=>{
-    const userId = req.params;
+    const {userId} = req.params;
 
     if (!mongoose.isValidObjectId(userId)) {
         return res.status(404).send({ message: 'User has not been found' });
@@ -63,6 +63,24 @@ router.put("/:userId",[auth,accessControl],async(req,res)=>{
       );
 
       return res.send({message:"User has been successfully updated"})
+})
+
+router.delete("/:userId",[auth],async(req,res)=>{
+    const {userId}=req.params;
+
+    if(!mongoose.isValidObjectId(userId)){
+        return res.status(404).send({message:"User has not been found"});
+    }
+
+    const user = await User.findOne({_id:userId}).select("-__v");
+
+    if(!user){
+        return res.status(404).send({message:"User has not been found"});
+    }
+
+    await User.findByIdAndDelete(userId);
+
+    return res.send({message:"User has been successfully deleted"})
 })
 
 module.exports = router;

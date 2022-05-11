@@ -18,7 +18,6 @@ module.exports = async(req,res,next)=>{
         return res.status(403).send({message:"You have not access"})
     }
 
-    console.log(role.rights.user.canCreateUser)
     if(!role.rights.user.canCreateUser){
         return res.status(403).send({message:"You have not access"})
     }

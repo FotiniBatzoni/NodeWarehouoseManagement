@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require("bcrypt");
 const auth = require("../middleware/auth");
 const accessControl = require("../middleware/accessControl");
-const {User, validateUser, validateRole} = require("../models/user");
+const {User, validateUser} = require("../models/user");
 const{Role}=require("../models/role")
 const mongoose = require("mongoose");
 
@@ -59,25 +59,5 @@ router.post("/",[auth,accessControl],async(req,res)=>{
 })
 
 
-function validate(user){
-    const schema = Joi.object({
-        email:Joi.string().email().required().min(8).max(50)
-        .messages({
-            "any.required": `Email is a required field`,
-            "string.email":`Invalid email`,
-            "string.min": `Email should have at least 8 letters length`,
-            "string.max": `Email should have at most 50 letters length`,
-            "string.empty": `Email should not be empty`
-        }),
-        password:Joi.string().required().min(8).max(50)
-        .messages({
-            "any.required": `Password is a required field`,
-            "string.min": `Password should have at least 8 letters length`,
-            "string.max": `Password should have at most 50 letters length`,
-            "string.empty": `Password should not be empty` 
-        })
-    });
-    return schema.validate(user);
-}
 
 module.exports = router;
