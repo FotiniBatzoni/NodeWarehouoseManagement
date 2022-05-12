@@ -30,7 +30,6 @@ const userSchema = new mongoose.Schema({
         type:String,
         length:5
     }
-
 });
 
 userSchema.methods.generateAuthToken = function () {
@@ -81,14 +80,11 @@ function validateUser(user){
         .messages({
             "any.required": `Telephone is a required field`,
             "string.length": `Telephone should have  10 digits`,
-            "string.empty": `Telephone should not be empty`
+            "string.empty": `Telephone should not be empty`,
+            "string.pattern.base":`Telephone should be numeric` 
         })
-        // action:Joi.string().required().messages({
-        //     "any.required": `Action is a required field`,
-        //     "string.empty": `Action should not be empty`
-        // })
      
-    });
+    }).unknown(true);
     return schema.validate(user);
 }
 

@@ -50,7 +50,8 @@ function validateSupplier(supplier){
         .messages({
             "any.required": `Telephone is a required field`,
             "string.length": `Telephone should have  10 digits`,
-            "string.empty": `Telephone should not be empty`
+            "string.empty": `Telephone should not be empty`,
+            "string.pattern.base":`Telephone should be numeric` 
         }),
         address:Joi.string().required().trim().empty().min(2).max(100).messages({
             "any.required":`Address is required field`,
@@ -66,7 +67,7 @@ function validateSupplier(supplier){
             "string.max": `IBAN should have length at most 100 characters`,
             "string.empty":`IBAN cannot be an empty field`
         }),
-    })
+    }).unknown(true)
 
     return schema.validate(supplier);
 }

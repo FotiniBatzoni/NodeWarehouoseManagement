@@ -2,9 +2,11 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 const auth = require("../middleware/auth");
+const accessControl = require("../middleware/accessControl");
+const paginateDocuments = require("../utilities/paginateDocuments")
 const {Category,validateCategory } = require("../models/category");
 
-router.post("/",[auth],async(req,res)=>{
+router.post("/",[auth,accessControl],async(req,res)=>{
     const {error} = validateCategory(req.body);
     // console.log(error)
     if(error){
@@ -26,8 +28,8 @@ router.post("/",[auth],async(req,res)=>{
     return res.send({message:"Category is successfully saved"})
 })
 
-router.put("/:categoryName",[auth],async(req,res)=>{
-    const {categoryName} = req.params;
+router.put("/:categoryName",[auth,accessControl],async(req,res)=>{
+    let {categoryName} = req.params;
     categoryName = categoryName.toLowerCase()
 
     const {error} = validateCategory(req.body);
@@ -45,6 +47,14 @@ router.put("/:categoryName",[auth],async(req,res)=>{
         return res.status(404).send({message:"Cannot find category"})
     }
 
+    let rbCategoryName = await Category.findOne({
+        categoryName:req.body.categoryName
+    })
+
+    if(rbCategoryName){
+        return res.status(400).send({message:"Category name already exists"})
+    }
+
     category = await Category.findByIdAndUpdate(
        category._id,{
             categoryName:req.body.categoryName.toLowerCase()
@@ -56,9 +66,14 @@ router.put("/:categoryName",[auth],async(req,res)=>{
 })
 
 router.get("/",[auth],async (req,res)=>{
-    let categories = await Category.find({});
+    const categoriesQuery = Category.find({}).select("-__v");
+    const categoriesCount = await Category.countDocuments();
+    const url = `${req.protocol}://${req.get('host')}/api/categories`
 
-   for (let category of categories){
+    let categories = await paginateDocuments(req.query,categoriesQuery,categoriesCount,url)
+
+
+   for (let category of categories.documents){
    let newCatName = category.categoryName.replace(category.categoryName.charAt(0),category.categoryName.charAt(0).toUpperCase());
     category.categoryName = newCatName;
    }
@@ -80,7 +95,7 @@ router.get("/:categoryName",[auth],async(req,res)=>{
     return res.send(category)
 })
 
-router.delete("/:categoryName",[auth],async(req,res)=>{
+router.delete("/:categoryName",[auth,accessControl],async(req,res)=>{
     let {categoryName} = req.params;
     categoryName = categoryName.toLowerCase()
     

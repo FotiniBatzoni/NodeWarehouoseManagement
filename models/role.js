@@ -109,10 +109,7 @@ const roleSchema = new mongoose.Schema({
                 default:false
             }
         }
-    },
-    action:{
-        type:String,
-    },
+    }
 })
 
 const Role = mongoose.model("Role",roleSchema);
@@ -130,10 +127,6 @@ function validateRole(role){
         .messages({
             "any.required": `Priority is a required field`,
             "string.empty": `Priority should not be empty`
-        }),
-        action:Joi.string().required().messages({
-            "any.required": `Action is a required field`,
-            "string.empty": `Action should not be empty`
         }),
        rights:Joi.object({
             role:Joi.object({
@@ -287,7 +280,7 @@ function validateRole(role){
         })
             })
         })
-    })
+    }).unknown(true)
     return schema.validate(role);
 }
 

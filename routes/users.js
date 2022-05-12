@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
 const auth = require("../middleware/auth");
 const accessControl = require("../middleware/accessControl");
 const paginateDocuments = require("../utilities/paginateDocuments");
 const {User, validateUser} = require("../models/user");
+const {Role,validateRole} = require("../models/role")
 
 
 router.get("/",[auth],async(req,res)=>{
@@ -39,6 +39,7 @@ router.get("/:userId",[auth],async(req,res)=>{
 })
 
 router.put("/:userId",[auth,accessControl],async(req,res)=>{
+    console.log("here")
     const {userId} = req.params;
 
     if (!mongoose.isValidObjectId(userId)) {
@@ -51,21 +52,30 @@ router.put("/:userId",[auth,accessControl],async(req,res)=>{
         return res.status(400).send({message:error.details[0].message})
     }
 
-    let role = await Role.findOne({_id:roleId})
+    if (!mongoose.isValidObjectId(req.body.role)) {
+        return res.status(404).send({ message: 'Role is invalid' });
+      }
+
+    let role = await Role.findOne({_id:req.body.role})
 
     if(!role){
         return res.status(404).send({ message: 'Role has not been found' });
     }
 
     await User.findByIdAndUpdate(
-        role,req.body,
+        userId,{
+            firstName:req.body.firstName,
+            lastName:req.body.lastName,
+            telephone:req.body.telephone,
+            role:req.body.role
+        },
         { new: true }
       );
 
       return res.send({message:"User has been successfully updated"})
 })
 
-router.delete("/:userId",[auth],async(req,res)=>{
+router.delete("/:userId",[auth,accessControl],async(req,res)=>{
     const {userId}=req.params;
 
     if(!mongoose.isValidObjectId(userId)){

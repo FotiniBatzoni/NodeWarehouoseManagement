@@ -20,7 +20,7 @@ function validateCategory(category){
             "string.max": `The Name of Category should have at most 50 letters length`,
             "string.empty": `The Name of Category should not be empty`
         })
-    });
+    }).unknown(true);
     return schema.validate(category);
 }
 
