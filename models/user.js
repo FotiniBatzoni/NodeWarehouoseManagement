@@ -49,7 +49,7 @@ const User = mongoose.model('User',userSchema);
 
 function validateUser(user){
     const schema = Joi.object({
-        email:Joi.string().email().required().min(8).max(50)
+        email:Joi.string().email().trim().required().min(8).max(50)
         .messages({
             "any.required": `Email is a required field`,
             "string.email":`Invalid email`,
@@ -62,21 +62,21 @@ function validateUser(user){
             "string.min": `Password should have at least 8 letters length`,
             "string.max": `Password should have at most 50 letters length`
         }),
-        firstName:Joi.string().required().min(2).max(50)
+        firstName:Joi.string().empty().trim().required().min(2).max(50)
         .messages({
             "any.required": `First Name is a required field`,
             "string.min": `First Name should have at least 2 letters length`,
             "string.max": `First Name should have at most 50 letters length`,
             "string.empty": `First Name should not be empty`
         }),
-        lastName:Joi.string().required().min(2).max(50)
+        lastName:Joi.string().required().empty().trim().min(2).max(50)
         .messages({
             "any.required": `Last Name is a required field`,
             "string.min": `Last Name should have at least 2 letters length`,
             "string.max": `Last Name should have at most 50 letters length`,
             "string.empty": `Last Name should not be empty`
         }),
-        telephone:Joi.string().length(10).pattern(/^[0-9]+$/).required()
+        telephone:Joi.string().length(10).pattern(/^[0-9]+$/).required().empty()
         .messages({
             "any.required": `Telephone is a required field`,
             "string.length": `Telephone should have  10 digits`,
