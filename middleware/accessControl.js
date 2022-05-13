@@ -14,12 +14,10 @@ module.exports = async(req,res,next)=>{
     let possibleActions = actions;
     //console.log(possibleActions);
 
-    console.log(action)
     if(possibleActions.hasOwnProperty(action)){
         hasMatch=true;
     }
 
-    console.log(hasMatch)
     if(!hasMatch){
         return res.status(400).send({message:"Invalid Action"})
     }
@@ -27,8 +25,6 @@ module.exports = async(req,res,next)=>{
     const role = await Role.findOne({_id:req.user.role});
     // console.log(role.rights)
 
-    console.log(req.body)
-    console.log("action"+action)
     if(action==="createRole" && !role.rights.role.canCreateRole){
         return res.status(403).send({message:"1You have not access"})
     }

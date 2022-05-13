@@ -39,7 +39,6 @@ router.get("/:userId",[auth],async(req,res)=>{
 })
 
 router.put("/:userId",[auth,accessControl],async(req,res)=>{
-    console.log("here")
     const {userId} = req.params;
 
     if (!mongoose.isValidObjectId(userId)) {
