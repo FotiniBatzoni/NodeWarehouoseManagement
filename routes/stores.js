@@ -13,8 +13,6 @@ router.post("/",[auth,accessControl],async(req,res)=>{
         return res.status(404).send({message:error.details[0].message});
     }
 
-    delete req.body.action
-
     const store = new Store(req.body);
 
     await store.save();
@@ -29,20 +27,16 @@ router.put("/:storeId",[auth,accessControl],async(req,res)=>{
         return res.status(404).send({message:"Invalid Store"});
     }
 
-    let store = await Store.findOne({_id:storeId});
-
-    if(!store){
-        return res.status(404).send({message:"Store has not been found"});
-    }
-
     const {error} = validateStore(req.body)
     if(error){
         return res.status(400).send({message:error.details[0].message})
     }
 
-    delete req.body.action;
+    let store = await Store.findByIdAndUpdate(storeId,req.body,{new:true});
 
-    store = await Store.findByIdAndUpdate(storeId,req.body,{new:true});
+    if(!store){
+        return res.status(404).send({message:"Store has not been found"});
+    }
 
     return res.send({message:"Store has been successfully updated"});
 });
@@ -83,7 +77,6 @@ router.delete("/:storeId",[auth,accessControl],async(req,res)=>{
     }
 
     const store = await Store.findOneAndDelete({_id:storeId});
-    console.log(store)
 
     if(!store){
         return res.status(404).send({message:"Store has not been found"});

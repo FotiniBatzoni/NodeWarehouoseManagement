@@ -45,20 +45,20 @@
             "endpoint":"/api/stores",
             "name":"deleteStore"
         },
-        "createCategory":{
+        "createProduct":{
             "method":"post",
-            "endpoint":"/api/categories",
-            "name":"createCategory"
+            "endpoint":"/api/products",
+            "name":"createProduct"
         },
-        "updateCategory":{
+        "updateProduct":{
             "method":"put",
-            "endpoint":"/api/categories",
-            "name":"updateCategory"
+            "endpoint":"/api/products",
+            "name":"updateProduct"
         },
-        "deleteCategory":{
+        "deleteProduct":{
             "method":"delete",
-            "endpoint":"/api/categories",
-            "name":"deletecategory"
+            "endpoint":"/api/products",
+            "name":"deleteProduct"
         },
         "createInvoice":{
             "method":"post",

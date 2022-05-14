@@ -24,7 +24,7 @@ router.put("/:supplierId",[auth],async(req,res)=>{
     const {supplierId} = req.params;
 
     if(!mongoose.isValidObjectId(supplierId)){
-        return res.status(404).send({message:"Supplier has not been found"});
+        return res.status(404).send({message:"Invalid Supplier"});
     }
 
     const {error}= validateSupplier(req.body)
@@ -33,10 +33,14 @@ router.put("/:supplierId",[auth],async(req,res)=>{
         return res.status(400).send({message:error.details[0].message})
     }
 
-    await Supplier.findByIdAndUpdate(
+    const supplier = await Supplier.findByIdAndUpdate(
         supplierId,req.body,
         { new: true }
       );
+
+      if(!supplier){
+        return res.status(404).send({message:"Supplier has not been found"});
+      }
 
     return res.send({message:"Supplier has been successfully updated"})
 })
@@ -68,19 +72,17 @@ router.get("/:supplierId",[auth],async(req,res)=>{
 })
 
 router.delete("/:supplierId",[auth],async(req,res)=>{
-    const {supplierId}=req.params;
+    const {supplierId} = req.params;
 
     if(!mongoose.isValidObjectId(supplierId)){
         return res.status(404).send({message:"Supplier has not been found"});
     }
 
-    const supplier = await Supplier.findOne({_id:supplierId}).select("-__v");
+    const supplier = await Supplier.findByIdAndDelete(supplierId);
 
     if(!supplier){
         return res.status(404).send({message:"Supplier has not been found"});
     }
-
-    await Supplier.findByIdAndDelete(supplierId);
 
     return res.send({message:"Supplier has been successfully deleted"})
 })

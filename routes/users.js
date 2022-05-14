@@ -61,7 +61,7 @@ router.put("/:userId",[auth,accessControl],async(req,res)=>{
         return res.status(404).send({ message: 'Role has not been found' });
     }
 
-    await User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
         userId,{
             firstName:req.body.firstName,
             lastName:req.body.lastName,
@@ -69,9 +69,13 @@ router.put("/:userId",[auth,accessControl],async(req,res)=>{
             role:req.body.role
         },
         { new: true }
-      );
+    );
 
-      return res.send({message:"User has been successfully updated"})
+    if(!user){
+        return res.status(404).send({message:"User has not been found"})
+    }
+
+    return res.send({message:"User has been successfully updated"})
 })
 
 router.delete("/:userId",[auth,accessControl],async(req,res)=>{

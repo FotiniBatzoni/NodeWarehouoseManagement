@@ -10,6 +10,8 @@ const roles =require("../routes/roles");
 const users = require("../routes/users");
 const suppliers = require("../routes/suppliers");
 const stores = require("../routes/stores");
+const products = require("../routes/products");
+const batches = require("../routes/batches");
 
 //to handle res.header
 module.exports = function (app) {
@@ -41,4 +43,6 @@ module.exports = function (app) {
   app.use("/api/users",users);
   app.use("/api/suppliers",suppliers);
   app.use("/api/stores",stores);
+  app.use("/api/products",products);
+  app.use("/api/batches",batches);
 };

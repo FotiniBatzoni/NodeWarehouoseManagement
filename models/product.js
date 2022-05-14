@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
 
+
 const productSchema = new mongoose.Schema({
     productName:{
         type:String,
@@ -17,27 +18,24 @@ const productSchema = new mongoose.Schema({
         default:0
     },
     minQuantity:{
-        type:Number
+        type:Number,
+        default:5
     },
     maxQuantity:{
-        type:Number
+        type:Number,
+        default:50
     },
-    purchasePrice:{
-        type:Number
-    },
+    batches:[{
+        type: mongoose.Schema.Types.ObjectId,
+        ref : 'Batch'
+    }
+    ],
     stockMangementMethod:{
        type:String,
        enum:['FIFO','LIFO']
     },
-    dateOfExpire:{
-        type:Date
-    },
     image:{
         type:String
-    },
-    supplierId:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref: 'Supplier'
     },
     category:{
         type:mongoose.Schema.Types.String,
@@ -50,16 +48,14 @@ const productSchema = new mongoose.Schema({
 },{timestamp:true})
 
 productSchema.pre('save',async function(next){
-    this.purchasePrice = this.purchasePrice.toFixed()
-
     if(this.productName && this.isNew){
         let counter = 0;
         let baseName=this.productName;
-        let docName = await productSchema.findOne({productName:baseName})
+        let docName = await Product.findOne({productName:baseName})
         while(docName){
             ++counter;
             baseName =`${baseName}_${counter}`;
-            docName = await productSchema.findOne({productName:baseName})
+            docName = await Product.findOne({productName:baseName})
         }
         this.productName = baseName
     }
@@ -67,11 +63,11 @@ productSchema.pre('save',async function(next){
     if(this.productName && !this.isNew){
         let counter = 0;
         let baseName=this.productName;
-        let docName = await productSchema.findOne({productName:baseName,_id:{$ne:this._id}})
+        let docName = await Product.findOne({productName:baseName,_id:{$ne:this._id}})
         while(docName){
             ++counter;
             baseName =`${baseName}_${counter}`;
-            docName = await productSchema.findOne({productName:baseName,_id:{$ne:this._id}})
+            docName = await Product.findOne({productName:baseName,_id:{$ne:this._id}})
         }
         this.productName = baseName
     }
@@ -83,7 +79,7 @@ productSchema.pre('save',async function(next){
 const Product = mongoose.model("Product",productSchema);
 
 function validateProduct(product){
-    Joi.object({
+    const schema = Joi.object({
         productName: Joi.string().required().empty().trim().min(2).max(50).messages({
             "any.required":`Product Name is a required fileld`,
             "string.empty":`Product Name cannot be an empty field`,
@@ -113,28 +109,22 @@ function validateProduct(product){
             "number.base": `Maxinum Quantity should be number`,
             "number.min": `Maximum Quantity cannot be negative`,
         }),
-        purchasePrice: Joi.number().required().allow('', null).min(0).messages({
-            "number.base": `Purchase Price should be number`,
-            "number.min": `Purchase Price cannot be negative`,
-        }),
+       
         stockMangementMethod: Joi.string().required().empty().valid('FIFO', 'LIF0').messages({
             "any.required": `Stock Management Method is a required field`,
             "any.only": `Please choose stock Management Method`,
             "string.empty": `Stock Management Method should not be empty`,
             "string.base": `Stock Management Method should ne string`,
         }),
-        dateOfExpire:Joi.date().raw().required().greater('now').empty().trim().messages({
-            "any.required": `Date Of Expire is a required field`,
-            "date.base":`Date Of Expire should be date`,
+        category:Joi.string().required().messages({
+            "any.required":"Category is a requied field"
         }),
-        isActive: Joi.boolean().required().messages({
-            "any.required": `isActive is a required field`,
-            "boolean.empty": `isActive should not be empty`,
+        isActive: Joi.boolean().messages({
             "boolean.base": `isActive should ne a boolean`,
           }),
     },{unkonow:true})
 
-    return mongoose.Schema.validate(product);
+    return schema.validate(product);
 }  
 
 function transformSingleProductsImages(req, product) {

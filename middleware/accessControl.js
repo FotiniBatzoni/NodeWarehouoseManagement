@@ -33,7 +33,8 @@ module.exports = async(req,res,next)=>{
         return res.status(403).send({message:"You have not access"})
     }
 
-   
+    delete req.body.action;
+    
     next();
 }
 

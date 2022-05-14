@@ -39,14 +39,6 @@ router.put("/:categoryName",[auth,accessControl],async(req,res)=>{
     }
 
     
-    let category = await Category.findOne({
-        categoryName:categoryName
-    })
-
-    if(!category){
-        return res.status(404).send({message:"Cannot find category"})
-    }
-
     let rbCategoryName = await Category.findOne({
         categoryName:req.body.categoryName
     })
@@ -55,12 +47,17 @@ router.put("/:categoryName",[auth,accessControl],async(req,res)=>{
         return res.status(400).send({message:"Category name already exists"})
     }
 
-    category = await Category.findByIdAndUpdate(
+    const category = await Category.findByIdAndUpdate(
        category._id,{
             categoryName:req.body.categoryName.toLowerCase()
         },
         {new:true}
     )
+
+    if(!category){
+        return res.status(404).send({message:"Cannot find category"})
+    }
+
 
     return res.send({message:"Category is successfully updated"})
 })

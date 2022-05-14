@@ -34,18 +34,14 @@ router.put("/:roleId",[auth,accessControl],async(req,res)=>{
         return res.status(400).send({message:error.details[0].message})
     }
 
-    delete req.body.action;
-
-    let role = await Role.findOne({_id:roleId})
-
-    if(!role){
-        return res.status(404).send({ message: 'Role has not been found' });
-    }
-
-    await Role.findByIdAndUpdate(
+    let role = await Role.findByIdAndUpdate(
         role,req.body,
         { new: true }
       );
+
+      if(!role){
+        return res.status(404).send({ message: 'Role has not been found' });
+    }
 
       return res.send({message:"Role has been successfully updated"})
 })
