@@ -89,7 +89,6 @@ router.put("/:batchId",[auth],async(req,res)=>{
 });
 
 router.get("/",[auth],async(req,res)=>{
-
     const batchQuery = Batch.find()
         .populate({ path:'product', select:'-batches -__v'})
         .populate({ path:'supplier',select:'supplierName'})
@@ -104,4 +103,23 @@ router.get("/",[auth],async(req,res)=>{
     return res.send(batches)
 })
 
+
+router.get("/:batchId",[auth],async(req,res)=>{
+    const {batchId} = req.params; 
+
+    if(!mongoose.isValidObjectId(batchId)){
+        return res.status(404).send({message:'Invalid Batch'});
+    }
+
+    const batch = await Batch.findOne({_id:batchId})        
+        .populate({ path:'product', select:'-batches -__v'})
+        .populate({ path:'supplier',select:'supplierName'})
+        .select('batchName purchasePrice dateOfExpire deliveryday')
+
+    if(!batch){
+        return res.status(404).send({message:"Batch has not been found"});
+    }
+
+    return res.send(batch)
+})
 module.exports = router;
