@@ -3,6 +3,7 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const auth = require("../middleware/auth");
 const accessControl = require("../middleware/accessControl");
+const paginateDocuments = require("../utilities/paginateDocuments");
 const {Batch,validateBatch} = require("../models/batch");
 const { Product } = require("../models/product");
 const { Supplier } = require("../models/supplier");
@@ -85,6 +86,22 @@ router.put("/:batchId",[auth],async(req,res)=>{
 
 
     return res.send({message:"Batch is successfully updated"})    
+});
+
+router.get("/",[auth],async(req,res)=>{
+
+    const batchQuery = Batch.find()
+        .populate({ path:'product', select:'-batches -__v'})
+        .populate({ path:'supplier',select:'supplierName'})
+        .select('batchName purchasePrice dateOfExpire deliveryday')
+
+    const batchCount = await Batch.countDocuments();
+
+    const url = `${req.protocol}://${req.get('host')}/api/batches`
+
+    const batches = await paginateDocuments(req.query,batchQuery,batchCount,url)
+
+    return res.send(batches)
 })
 
 module.exports = router;
