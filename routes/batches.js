@@ -89,6 +89,7 @@ router.put("/:batchId",[auth],async(req,res)=>{
 });
 
 router.get("/",[auth],async(req,res)=>{
+
     const batchQuery = Batch.find()
         .populate({ path:'product', select:'-batches -__v'})
         .populate({ path:'supplier',select:'supplierName'})
@@ -103,6 +104,25 @@ router.get("/",[auth],async(req,res)=>{
     return res.send(batches)
 })
 
+router.get("/search",[auth],async(req,res)=>{
+    const name = req.query.name;
+
+    const regex = new RegExp(name,'i')//i for case-intensitive
+
+    const batchQuery = Batch.find({batchName:{$regex:regex}})
+    .populate({ path:'product', select:'-batches -__v'})
+    .populate({ path:'supplier',select:'supplierName'})
+    .select('batchName purchasePrice dateOfExpire deliveryday')
+
+const batchCount = await Batch.countDocuments({batchName:{$regex:regex}});
+
+const url = `${req.protocol}://${req.get('host')}/api/batches/search`
+
+const batches = await paginateDocuments(req.query,batchQuery,batchCount,url)
+
+return res.send(batches)
+
+})
 
 router.get("/:batchId",[auth],async(req,res)=>{
     const {batchId} = req.params; 
@@ -122,4 +142,7 @@ router.get("/:batchId",[auth],async(req,res)=>{
 
     return res.send(batch)
 })
+
+
+
 module.exports = router;
