@@ -12,6 +12,7 @@ const suppliers = require("../routes/suppliers");
 const stores = require("../routes/stores");
 const products = require("../routes/products");
 const batches = require("../routes/batches");
+const invoices = require("../routes/invoices");
 
 //to handle res.header
 module.exports = function (app) {
@@ -45,4 +46,5 @@ module.exports = function (app) {
   app.use("/api/stores",stores);
   app.use("/api/products",products);
   app.use("/api/batches",batches);
+  app.use("/api/invoices",invoices);
 };

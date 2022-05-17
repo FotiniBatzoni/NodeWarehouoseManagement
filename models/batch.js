@@ -20,17 +20,14 @@ const batchSchema = new mongoose.Schema({
     },
     dateOfExpire:{
         type: Date
-    },
-    deliveryDay:{
-        type :Date
     }
 },{timestamps:true});
 
 batchSchema.pre('save',async function(next){
     let counter = 1;
     const product = await Product.findOne({_id:this.product})
-    const nonexistingName=await Batch.findOne({productName:product.productName});
-    if(nonexistingName){
+    const existingName=await Product.findOne({productName:product.productName});
+    if(!existingName){
         counter=1
     }
     let baseName = `${product.productName}_batch/${counter}`
@@ -65,12 +62,7 @@ function validateBatch(batch){
             "any.required": `Date Of Expire is a required field`,
             "any.empty":`Date Of Expire should not be empty`,
             "date.base":`Date Of Expire should be date`,
-        }),
-        deliveryDay:Joi.date().raw().required().empty().messages({
-            "any.required": `Delivery Day is a required field`,
-            "any.empty":`Delivery Day should not be empty`,
-            "date.base":`Delivery Day should be date`,
-        }),
+        })
     },{unknown:true})
 
     return schema.validate(batch)
