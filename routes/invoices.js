@@ -2,10 +2,12 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/auth");
 const accessControl = require("../middleware/accessControl");
+const dateComparison = require("../utilities/dateComparison");
 const { Product } = require("../models/product");
 const { Supplier } = require("../models/supplier");
 const {Invoice,validateInvoice} = require("../models/invoice");
 const { Batch } = require("../models/batch");
+const { default: mongoose } = require("mongoose");
 
 
 router.post("/",[auth,accessControl],async(req,res)=>{
@@ -16,30 +18,21 @@ router.post("/",[auth,accessControl],async(req,res)=>{
     }
 
     //check if delivery is on time
-    const today = new Date().toISOString().split('T')[0];
-    const duedate =req.body.dueDate.split(' ')[0];
-    let dueDateComprarison = "";
-    if(today>duedate){
-        dueDateComprarison='Delivery is late'
-    }else if(today<duedate){
-        dueDateComprarison='Early Delivery'
-    }else{
-        dueDateComprarison='Delivery on time'
-    }
+    const dueDateComprarison= dateComparison(req.body.dueDate);
 
     const invoice = new Invoice(req.body);
     invoice.save();
+
+    const supplier = await Supplier.findOne({_id:req.body.supplier})
+    if(!supplier){
+         return res.status(404).send({message:"Supplier has not been found"});
+    }
 
     //create batch from every product
     for(let product of req.body.products){
         const dbProduct = await Product.findOne({_id:product.productId})
         if(!dbProduct){
              return res.status(404).send({message:"Product has not been found"});
-        }
-
-        const supplier = await Supplier.findOne({_id:req.body.supplier})
-        if(!supplier){
-             return res.status(404).send({message:"Supplier has not been found"});
         }
 
         const input={
@@ -62,6 +55,140 @@ router.post("/",[auth,accessControl],async(req,res)=>{
     }
 
     return res.send({message:dueDateComprarison,invoice:invoice})
+})
+
+router.put("/:invoiceId",[auth,accessControl],async(req,res)=>{
+    const {invoiceId} = req.params;
+
+    if(!mongoose.isValidObjectId(invoiceId)){
+        return res.status(404).send({message:"Invalid Invoice"})
+    }
+
+    const {error} = validateInvoice(req.body);
+    //console.log(error)
+    if(error){
+        return res.status(400).send({message:error.details[0].message})
+    }
+
+    //check if delivery is on time
+    const dueDateComprarison= dateComparison(req.body.dueDate);
+
+    let invoice = await Invoice.findOne({_id:invoiceId});
+    if(!invoice){
+        return res.status(404).send({message:"Invoice has not been found"})
+    }
+
+    const supplier = await Supplier.findOne({_id:req.body.supplier})
+    if(!supplier){
+         return res.status(404).send({message:"Supplier has not been found"});
+    }
+
+    const batches = await Batch.find({invoice:invoiceId})
+
+    //Products coming from the invoiceId
+    let dbBatchProducts=[];
+    for(let batch of batches){
+        dbBatchProducts.push(batch.product.toString());
+    }
+
+    //product coming from req.body
+    let reqProducts=[];
+    for(let product of req.body.products){
+        reqProducts.push(product.productId)
+    }
+   
+    let productsToUpdate = dbBatchProducts.filter(el => reqProducts.includes(el))
+ 
+
+    //Batches to Update
+    for(let product of productsToUpdate){
+        console.log(productsToUpdate)
+        const dbProduct = await Product.findOne({_id:product})
+        if(!dbProduct){
+             return res.status(404).send({message:"Product has not been found"});
+        }
+
+        const filter ={invoice:invoiceId,product:product}
+        const update ={
+            product:product,
+            supplier:req.body.supplier,
+            invoice:invoiceId,
+            purchasePrice:req.body.purchasePrice,
+            tax:req.body.tax,
+            dateOfExpire:req.body.dateOfExpire
+            }
+    
+
+       const batchToUpdate = await Batch.findOneAndUpdate(filter,update,{new:true})
+       console.log(batchToUpdate);
+       
+
+        //delete from array
+        let dbBatchProductsIndex = dbBatchProducts.indexOf(product);
+        dbBatchProducts.splice(dbBatchProductsIndex,1);
+
+        let reqProductsIndex = reqProducts.indexOf(product);
+        reqProducts.splice(reqProductsIndex,1);
+
+        console.log("dbBatchProducts "+dbBatchProducts)
+        console.log("reqProducts "+reqProducts)
+    }
+
+
+     //Batches to Delete
+     for(let product of dbBatchProducts){
+         console.log("dbBatchProducts product " + product)
+
+         const filter ={invoice:invoiceId,product:product}
+        const batchToDelete = await Batch.findOneAndDelete(filter)
+
+        console.log("batchToDelete " +batchToDelete)
+        //Delete batch from product
+        await Product.findOneAndUpdate(
+               {_id:product},
+               { $pull:{batches:batchToDelete._id}},
+               {new:true}
+            )
+     }
+
+
+     //Batches To Create
+     console.log(reqProducts)
+     for(let product of reqProducts){
+        const input ={
+            product:product,
+            supplier:req.body.supplier,
+            invoice:invoiceId,
+            purchasePrice:req.body.purchasePrice,
+            tax:req.body.tax,
+            dateOfExpire:req.body.dateOfExpire
+            }
+        const newBatch = new Batch(input);
+
+        console.log("newBatch "+newBatch)
+        await newBatch.save();
+
+        const dbProduct = await Product.findOne({_id:product})
+
+        //add Batch to product
+        dbProduct.batches.push(newBatch._id);
+        await dbProduct.save();
+
+        if(!dbProduct.batches.includes(newBatch._id)){
+            dbProduct.batches.push(newBatch._id);
+            dbProduct.save();
+        }
+    
+    }
+
+     invoice = await Invoice.findByIdAndUpdate(
+        invoiceId,req.body,
+        { new: true }
+      );
+
+
+    return res.send({dueDateComprarison:dueDateComprarison,
+        message:"Invoice has been successfully updated"})
 })
 
 module.exports = router;
