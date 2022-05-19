@@ -24,6 +24,10 @@ const invoiceSchema = new mongoose.Schema({
             quantity:{
                 type: Number
             },
+            unitOfMeasurement:{
+                type:String,
+                enum:['Piece','Kilo']
+             },
             purchasePrice:{
                 type: Number
             },
@@ -31,6 +35,9 @@ const invoiceSchema = new mongoose.Schema({
                 type: Date
             },
             tax:{
+                type: Number
+            },
+            taxValue:{
                 type: Number
             },
             subtotal:{
@@ -65,6 +72,11 @@ function validateInvoice(invoice){
             "number.integer":`Invoice Number should be integer`,
             "number.min":`Invoice Number cannot negative`         
         }),
+        supplier: Joi.ObjectId().required().empty().messages({
+            "any.required": `Supplier is a required field`,
+            "any.empty":`Supplier should not be empty`,
+            "string.pattern.name":`Invalid Supplier`
+          }),
         invoiceDate:Joi.date().required().less('now').messages({
             "any.required":`Invoice Date is a required field`,
             "date.base":`Invoice Date should be date`,
@@ -76,14 +88,21 @@ function validateInvoice(invoice){
         }),
         products:Joi.array().items(
             Joi.object({
-                productId: joi.ObjectId().required().empty().messages({
+                productId: Joi.ObjectId().required().empty().messages({
                     "any.required": `Product is a required field`,
                     "any.empty":`Product should not be empty`,
+                    "string.pattern.name":`Invalid Product`
                   }),
                 quantity:Joi.number().required().min(0).messages({
                     "any.required":`Quantity is a required field`,
                     "number.base":`Quantity should be numeric`,
                     "number.min":`Quantity cannot negative`         
+                }),
+                unitOfMeasurement: Joi.string().required().empty().valid('Kilo', 'Piece').messages({
+                    "any.required": `Unit of Measurement is a required field`,
+                    "any.only": `Please choose unit od measurement`,
+                    "string.empty": `Unit of Measurement should not be empty`,
+                    "string.base": `Unit of Measurement should ne string`,
                 }),
                 purchasePrice:Joi.number().required().min(0).messages({
                     "any.required":`Purchase Price is a required field`,
@@ -100,6 +119,11 @@ function validateInvoice(invoice){
                     "number.base":`Tax should be numeric`,
                     "number.integer":`Tax should be integer`,
                     "number.min":`Tax cannot negative`         
+                }),
+                taxValue:Joi.number().required().min(0).messages({
+                    "any.required":`Tax Value is a required field`,
+                    "number.base":`Tax Value should be numeric`,
+                    "number.min":`Tax Value cannot negative`         
                 }),
                 subtotal:Joi.number().required().min(0).messages({
                     "any.required":`Subtotal is a required field`,
