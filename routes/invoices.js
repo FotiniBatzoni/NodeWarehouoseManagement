@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require("../middleware/auth");
 const accessControl = require("../middleware/accessControl");
 const dateComparison = require("../utilities/dateComparison");
+const paginateDocuments = require("../utilities/paginateDocuments");
 const { Product } = require("../models/product");
 const { Supplier } = require("../models/supplier");
 const {Invoice,validateInvoice} = require("../models/invoice");
@@ -12,7 +13,6 @@ const { default: mongoose } = require("mongoose");
 
 router.post("/",[auth,accessControl],async(req,res)=>{
     const {error} = validateInvoice(req.body);
-    //console.log(error)
     if(error){
         return res.status(400).send({message:error.details[0].message})
     }
@@ -65,7 +65,6 @@ router.put("/:invoiceId",[auth,accessControl],async(req,res)=>{
     }
 
     const {error} = validateInvoice(req.body);
-    //console.log(error)
     if(error){
         return res.status(400).send({message:error.details[0].message})
     }
@@ -102,7 +101,6 @@ router.put("/:invoiceId",[auth,accessControl],async(req,res)=>{
 
     //Batches to Update
     for(let product of productsToUpdate){
-        console.log(productsToUpdate)
         const dbProduct = await Product.findOne({_id:product})
         if(!dbProduct){
              return res.status(404).send({message:"Product has not been found"});
@@ -120,8 +118,6 @@ router.put("/:invoiceId",[auth,accessControl],async(req,res)=>{
     
 
        const batchToUpdate = await Batch.findOneAndUpdate(filter,update,{new:true})
-       console.log(batchToUpdate);
-       
 
         //delete from array
         let dbBatchProductsIndex = dbBatchProducts.indexOf(product);
@@ -129,20 +125,15 @@ router.put("/:invoiceId",[auth,accessControl],async(req,res)=>{
 
         let reqProductsIndex = reqProducts.indexOf(product);
         reqProducts.splice(reqProductsIndex,1);
-
-        console.log("dbBatchProducts "+dbBatchProducts)
-        console.log("reqProducts "+reqProducts)
     }
 
 
      //Batches to Delete
      for(let product of dbBatchProducts){
-         console.log("dbBatchProducts product " + product)
 
-         const filter ={invoice:invoiceId,product:product}
+        const filter ={invoice:invoiceId,product:product}
         const batchToDelete = await Batch.findOneAndDelete(filter)
 
-        console.log("batchToDelete " +batchToDelete)
         //Delete batch from product
         await Product.findOneAndUpdate(
                {_id:product},
@@ -153,7 +144,6 @@ router.put("/:invoiceId",[auth,accessControl],async(req,res)=>{
 
 
      //Batches To Create
-     console.log(reqProducts)
      for(let product of reqProducts){
         const input ={
             product:product,
@@ -165,7 +155,6 @@ router.put("/:invoiceId",[auth,accessControl],async(req,res)=>{
             }
         const newBatch = new Batch(input);
 
-        console.log("newBatch "+newBatch)
         await newBatch.save();
 
         const dbProduct = await Product.findOne({_id:product})
@@ -190,5 +179,38 @@ router.put("/:invoiceId",[auth,accessControl],async(req,res)=>{
     return res.send({dueDateComprarison:dueDateComprarison,
         message:"Invoice has been successfully updated"})
 })
+
+router.get("/",[auth],async(req,res)=>{
+    const invoiceQuery = Invoice.find({})
+        .populate({path:'products.productId'})
+        .populate({path:'supplier'})
+
+    const invoiceCount= await Invoice.countDocuments({});
+
+    const url = `${req.protocol}://${req.get('host')}/api/invoices`
+
+    const invoices = await paginateDocuments(req.query,invoiceQuery,invoiceCount,url)
+
+    return res.send(invoices)
+})
+
+router.get("/:invoiceId",[auth],async(req,res)=>{
+    const {invoiceId}= req.params;
+
+    if(!mongoose.isValidObjectId(invoiceId)){
+        return res.status(404).send({message:"Invalid Invoice"});
+    }
+
+    const invoice = await Invoice.findOne({_id:invoiceId})
+        .populate({path:'products.productId'})
+        .populate({path:'supplier'});
+
+    if(!invoice){
+        return res.status(404).send({message:"Invoice has not been found"});
+    }
+
+    return res.send(invoice)
+})
+
 
 module.exports = router;
